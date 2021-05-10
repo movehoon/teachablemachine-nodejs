@@ -81,7 +81,7 @@ app.post('/predict', (req, res, next) => {
                     console.log('prb: ', prb)
                     console.log('class: ', cls)
                     console.log('index: ', idx)
-                    res.send(idx.toString())
+                    res.send(cls)
                 });
             }
             catch (error) {
