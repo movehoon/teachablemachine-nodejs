@@ -67,7 +67,21 @@ app.post('/predict', (req, res, next) => {
         if (models[url] != undefined) {
             try {
                 getPrediction(models[url], _arrayBufferToBase64(data), (output) => {
-                    res.send(output);
+                    var prb = 0
+                    var idx = 0
+                    var cls = 'NOT_FOUND'
+                    for (var i=0; i<output.length; i++) {
+                        console.log('output: ', i, ' => ', output[i])
+                        if (output[i]['probability'] > prb) {
+                            prb = output[i]['probability']
+                            cls = output[i]['className']
+                            idx = i
+                        }
+                    }
+                    console.log('prb: ', prb)
+                    console.log('class: ', cls)
+                    console.log('index: ', idx)
+                    res.send(idx.toString())
                 });
             }
             catch (error) {
