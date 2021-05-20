@@ -37,12 +37,15 @@ app.listen(3000, () => {
 let models = {}
 
 async function loadModel(URL) {
-    if (models[URL] == undefined) {
-        console.log('load model from ', URL);
-        const modelURL = URL + 'model.json';
-        const metadataURL = URL + 'metadata.json';
-        models[URL] = await tmImage.load(modelURL, metadataURL);
+
+    if (models[URL] != undefined) {
+        delete models[URL]
     }
+    console.log('load model from ', URL);
+    const modelURL = URL + 'model.json';
+    const metadataURL = URL + 'metadata.json';
+    models[URL] = await tmImage.load(modelURL, metadataURL);
+    console.log('model loaded ', URL);
 }
 
 app.post('/load', (req, res, next) => {
