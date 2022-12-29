@@ -154,7 +154,7 @@ app.post('/load_pose', (req, res, next) => {
 
 
 app.post('/predict_pose', (req, res, next) => {
-    console.log('/predict_pose rereq.body ', req.body)
+    // console.log('/predict_pose rereq.body ', req.body)
     // console.log('req.body["url"] ', req.body['url'])
     // console.log('req.body["image"] ', req.body['image'])
     let url = req.body['url']
