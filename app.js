@@ -6,6 +6,7 @@ const express = require('express');
 const formData = require('express-form-data');
 const os = require('os');
 const fs = require('fs')
+const path = require('path')
 
 const app = express();
 
@@ -37,6 +38,25 @@ app.listen(3000, () => {
 
 let models = {}
 let models_pose = {}
+let model_mask = undefined
+
+async function loadModelMask() {
+    // model_mask = await tmImage.load('./mask_model/model.json', './mask_model/metadata.json')
+    let modelURL = path.join(__dirname, '/mask_model/model.json')
+    let weightURL = path.join(__dirname, '/mask_model/weights.bin')
+    let metadataURL = path.join(__dirname, '/mask_model/metadata.json')
+    console.log('modelURL: ', modelURL)
+    model_mask = await tmImage.loadFromFiles(
+        modelURL,
+        weightURL,
+        metadataURL
+    )
+    // model_mask = await tmImage.load(
+    //     modelURL,
+    //     metadataURL
+    // )
+}
+// model_mask = loadModelMask()
 
 async function loadModel(URL) {
 
@@ -99,6 +119,50 @@ app.post('/predict', (req, res, next) => {
         }
     });
 });
+
+app.post('/predict_mask', (req, res, next) => {
+    // console.log('req.body ', req.body)
+    // console.log('req.body["url"] ', req.body['url'])
+    // console.log('req.body["image"] ', req.body['image'])
+    let url = req.body['url']
+    let image = req.body['image']
+    // console.log('url', url)
+    // console.log('path', image['path'])
+    fs.readFile(image['path'], function(err, data) {
+        if (err) throw err;
+        // console.log(data);
+
+        if (model_mask != undefined) {
+            try {
+                getPrediction(model_mask, _arrayBufferToBase64(data), (output) => {
+                    var prb = 0
+                    var idx = 0
+                    var cls = 'NOT_FOUND'
+                    for (var i=0; i<output.length; i++) {
+                        console.log('output: ', i, ' => ', output[i])
+                        if (output[i]['probability'] > prb) {
+                            prb = output[i]['probability']
+                            cls = output[i]['className']
+                            idx = i
+                        }
+                    }
+                    console.log('prb: ', prb)
+                    console.log('class: ', cls)
+                    console.log('index: ', idx)
+                    res.send(cls)
+                });
+            }
+            catch (error) {
+                res.send('Error on processing')
+            }
+        }
+        else {
+            loadModelMask()
+            res.send('Model not loaded')
+        }
+    });
+});
+
 
 // loadModel('https://teachablemachine.withgoogle.com/models/ymwzDuQDL/');
 // loadModel('https://teachablemachine.withgoogle.com/models/BkzXnW7fb/');
